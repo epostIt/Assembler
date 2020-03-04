@@ -20,13 +20,14 @@ class Parser:
     def __init__(self, file):
         self.lexer = Lex.Lex(file)
         self._init_instruction_info()
+        self._lineNumber = 0
 
     def _init_instruction_info(self):
         """
         Helper method. Initializes the instruction data stores.
         """
-        self.lineNumber = 0
-        self.curr_instr_line = ''
+        
+        # self.curr_instr_line = ''
         self._instruction_type = -1
         self._symbol = ''
         self._dest = ''
@@ -113,6 +114,10 @@ class Parser:
         return self._instruction_type
 
     @property
+    def lineNumber(self):
+        return self._lineNumber
+        
+    @property
     def symbol(self):
         """
         The extracted Symbol from instruction.
@@ -148,10 +153,11 @@ class Parser:
         Gets the next instruction (entire line). Each instruction reside on a physical line.
         """
         self._init_instruction_info()
-        self.lineNumber = self.lineNumber+1
+        self._lineNumber = self._lineNumber+1
         self.lexer.next_instruction()
-        line = self.lexer.curr_instr_line
+        # line = self.lexer.curr_instr_line
         token, val = self.lexer.curr_token
+        self.lexer.get_line()
 
         if token == Lex.OPERATION and val == '@':
             self._a_instruction()
@@ -159,4 +165,8 @@ class Parser:
             self._l_instruction()
         else:
             self._c_instruction(token, val)
+
+
+    def get_current_line(self):
+        return self.lexer.get_line()
 

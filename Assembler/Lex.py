@@ -32,10 +32,11 @@ class Lex(object):
 
     def __init__(self, asm_file_name):
         file = open(asm_file_name, 'r')
-        self.lineNumber = 0
-        self.curr_instr_line = ''
+        # self.lineNumber = 0
+        # self.curr_instr_line = ''
         self._lines = file.read()
         self._tokens = self._tokenize(self._lines.split('\n'))
+        
         # print(self._lines)
         # List of tokens for current instruction
         self.curr_instr_tokens = []
@@ -58,6 +59,7 @@ class Lex(object):
         return [t for t in [self._tokenize_line(l) for l in lines] if t]
 
     def _tokenize_line(self, line):
+        # print(line)
         return [self._token(word) for word in self._split(self._remove_comment(line))]
 
     def _remove_comment(self, line):
@@ -100,4 +102,8 @@ class Lex(object):
             return self.curr_instr_tokens[0]
         else:
             return ERROR, 0
+    
+    def get_line(self):
+        # print(self.curr_token)
+        return self._lines
 
