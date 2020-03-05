@@ -5,6 +5,75 @@ import Code
 import Parser
 import SymbolTable
 import logging
+import shutil
+
+
+class Process:
+
+    def changeFromBinary(line):
+        binNumb = ''
+        for ch in line:
+                if ch != '@':
+                    binNumb = binNumb + ch
+                
+                    
+        binNumb = str(int(binNumb, 2))
+        Process.writeFile('@'+binNumb+'\n')
+        
+
+    def changeFromHex(line):
+        hexNumb = ''
+        for ch in line:
+                if ch != '@':
+                    hexNumb = hexNumb + ch
+        hexNumb = str(int(hexNumb, 16))
+        Process.writeFile('@'+hexNumb+'\n')
+
+    def writeFile(line):
+        f = open("newFile.asm", "a")
+        f.write(line)
+        f.close()
+        
+    def open(file):
+         with open(file) as fileobj:
+            for line in fileobj:  
+                 
+                if 'b' in line:
+                    Process.changeFromBinary(line)
+                elif 'B' in line:
+                    Process.changeFromBinary(line)
+                elif 'x' in line:
+                    Process.changeFromHex(line)
+                elif 'X' in line:
+                    Process.changeFromHex(line)
+                else: 
+                    Process.writeFile(line)
+            
+
+    def equException(file):    
+        equDeclarations = []
+        print("here")   
+        with open(file) as fileobj:
+            for line in fileobj:  
+                if ".EQU" in line:
+                    equDeclarations.append(line.split())
+            
+        
+            if (any(equDeclarations[0][1] in sublist for sublist in equDeclarations)) == True: ################################## Need to re-write file so that it does not include re-defined .EQU
+        #         print("Cannot redefine .EQU")
+        #         with open('newNew', 'w') as write_obj:
+        # # Line by line copy data from original file to dummy file
+        #             for line in fileobj:
+        #                 # If current line number matches the given line number then skip copying
+        #                 if not equDeclarations[0][1] in line:
+        #                     write_obj.write(line)
+        #                 else:
+        #                     is_skipped = True
+                
+       
+                    
+
+
 
 class AddressFailure():
    """Raised when the input value is too small"""
@@ -13,7 +82,6 @@ class AddressFailure():
 # class ValueTooLargeError(Error):
 #    """Raised when the input value is too large"""
 #    pass
-
 
 
 class Assembler:
@@ -163,8 +231,15 @@ if __name__ == '__main__':
     else:
         asm_file = sys.argv[1]
 
+
     hack_assembler = Assembler()
-    # hack_assembler.assemble('Assembler/broken_add.asm')
-    hack_assembler.assemble(asm_file)
+    # Process.open('Assembler/Add.asm')
+    # hack_assembler.assemble('Assembler/newFile.asm')
+
+    Process.open('Add.asm')
+    Process.equException('newFile.asm')
+    hack_assembler.assemble('newFile.asm')
+    
+    
 
 

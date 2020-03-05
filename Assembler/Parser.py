@@ -41,11 +41,12 @@ class Parser:
           * @symbol, examples: @i, @n, @LOOP, @END; where i, n could be variables, where LOOP and END could be labels
                                previously declared with an L-Instruction.
         """
-       
+        next_token = self.lexer.next_token()
+        # print(next_token)
+
         self._instruction_type = Parser.A_INSTRUCTION
-        tok_type, self._symbol = self.lexer.next_token()
-    
-        
+        tok_type, self._symbol = next_token
+
 
     def _l_instruction(self):
         """
