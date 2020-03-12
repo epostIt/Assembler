@@ -8,7 +8,7 @@ import logging
 import shutil
 
 
-class Process:
+class Process: #if you have binary or hex in the code, then you have to change hack_assembler.assemble('Add.asm') to hack_assembler.assemble('NewFile.asm') at the end of this file
 
     def changeFromBinary(line):
         binNumb = ''
@@ -33,6 +33,13 @@ class Process:
         f = open("newFile.asm", "a")
         f.write(line)
         f.close()
+
+    def writeToErrorFile(message):
+        f = open("Tables/errorFile.txt", "a")
+        f.write(message )
+        f.close()
+        print()
+
         
     def open(file):
          with open(file) as fileobj:
@@ -48,33 +55,9 @@ class Process:
                     Process.changeFromHex(line)
                 else: 
                     Process.writeFile(line)
-            
-
-    def equException(file):    
-        equDeclarations = []
-        print("here")   
-        with open(file) as fileobj:
-            for line in fileobj:  
-                if ".EQU" in line:
-                    equDeclarations.append(line.split())
-            
         
-            if (any(equDeclarations[0][1] in sublist for sublist in equDeclarations)) == True: ################################## Need to re-write file so that it does not include re-defined .EQU
-        #         print("Cannot redefine .EQU")
-        #         with open('newNew', 'w') as write_obj:
-        # # Line by line copy data from original file to dummy file
-        #             for line in fileobj:
-        #                 # If current line number matches the given line number then skip copying
-        #                 if not equDeclarations[0][1] in line:
-        #                     write_obj.write(line)
-        #                 else:
-        #                     is_skipped = True
                 
        
-                    
-
-
-
 class AddressFailure():
    """Raised when the input value is too small"""
    pass
@@ -98,7 +81,10 @@ class Assembler:
     def __init__(self):
         self.symbol_address = 16
         self.symbols_table = SymbolTable.SymbolTable()
-        self.symbols_table.print_RAM_table()
+        # f = open("Tables/RAMFile.txt", "a")
+        # f.write(str(self.symbols_table) + "\n")
+        # f.close()
+        
 
     @staticmethod
     def get_hack_file(asm_file):
@@ -146,42 +132,41 @@ class Assembler:
                 curr_address += 1
             elif inst_type == parser.L_INSTRUCTION:
                 self.symbols_table.add_entry(parser.symbol, curr_address)
+                Assembler.writeToROMTableFile("\n" + parser.symbol + ":" + str(curr_address))
+                
+            elif inst_type == parser.EQU_INSTRUCTION:
+                # print(parser.get_current_line())
+                if(self.symbols_table.contains(parser.symbol)):
+                    Assembler.writeToErrorFile("The following EQU tried to be re-define: " + str(parser.symbol))
+                else:
+                    self.symbols_table.add_entry(parser.symbol, curr_address)
+                    f = open("Tables/EQU_Table.txt", "a")
+                    f.write("\n" + parser.symbol + ":" + str(curr_address))
+                    f.close()
+                    curr_address += 1
 
-    def find_difference(self):
-        print("--------------------------------")
-        print("ROM addresses")
-        # print(self.symbols_table.keys())
-        first_dict = {
-            'SP': 0, 
-            'LCL': 1, 
-            'ARG': 2, 
-            'THIS': 3, 
-            'THAT': 4,
-            'R0': 0,
-             'R1': 1, 
-             'R2': 2, 
-             'R3': 3, 
-             'R4': 4, 
-             'R5': 5, 
-             'R6': 6,
-              'R7': 7,
-            'R8': 8, 
-            'R9': 9, 
-            'R10': 10, 
-            'R11': 11, 
-            'R12': 12,
-             'R13': 13, 
-             'R14': 14, 
-             'R15': 15,
-            'SCREEN': 0x4000, 
-            'KBD': 0x6000
-        }
-        second_dict = self.symbols_table
-        value = { k : second_dict[k] for k in set(second_dict) - set(first_dict) }
-        print(value)
-        print("--------------------------------")
+    
+    
+    def writeToROMTableFile(message):
+        # f = open("Tables/ROMFile.txt", "a")
+        # f.write(message + "\n")
+        # f.close()
+        print()
+        
+    def writeToRAMTableFile(self):
+        # d = self.symbols_table
+        # d = dict((k, v) for k, v in d.items() if v >= 16)
+        # del d['SCREEN']
+        # del d['KBD']
+        # f = open("Tables/RAMFile.txt", "a")
+        # f.write(str(d) + "\n")
+        # f.close()
+        print()
+        
 
-    def pass_2(self, asm_file, hack_file):
+   
+
+    def pass_2(self, asm_file, physical_hack_file):
         """
         Second compilation pass: Generate hack machine code and write results to output file.
         :param asm_file: The program source code file, written in Hack Asembly Language.
@@ -189,7 +174,7 @@ class Assembler:
         :return: None.
         """
         parser = Parser.Parser(asm_file)
-        with open(hack_file, 'w', encoding='utf-8') as hack_file:
+        with open(physical_hack_file, 'w', encoding='utf-8') as hack_file:
             code = Code.Code()
             while parser.has_more_instructions():
                 parser.advance()
@@ -201,19 +186,23 @@ class Assembler:
                         
                         # print(self.symbols_table)
                     except:
+                        print(str(Parser.get_current_line(self)))
                         logging.error("There was an error with an A type instruction on line " + str(parser.lineNumber))
-                        logging.error(parser.get_current_line)
+                        Process.writeToErrorFile("There was an error with an A type instruction on line " + str(parser.lineNumber))
+
                         hack_file.write("There was an error with this instruction \n")
                         
                 elif inst_type == parser.C_INSTRUCTION:
                     try:
-                        hack_file.write(code.gen_c_instruction(parser.dest, parser.comp, parser.jmp) + '\n')
+                        hack_file.write(code.gen_c_instruction(parser.dest, parser.comp, parser.jmp, parser.lineNumber, physical_hack_file) + '\n')
                     except:
-                        logging.error("There was an error with an C type instruction on line " + str(parser.lineNumber))
                         hack_file.write("There was an error with this instruction \n")
                 elif inst_type == parser.L_INSTRUCTION:
                     pass
-            Assembler.find_difference(self)
+            
+            
+            # print(self.symbols_table)
+            Assembler.writeToRAMTableFile(self)
 
     def assemble(self, file):
         """
@@ -233,12 +222,13 @@ if __name__ == '__main__':
 
 
     hack_assembler = Assembler()
-    # Process.open('Assembler/Add.asm')
+    Process.open('Assembler/Add.asm')
+    hack_assembler.assemble('Assembler/Add.asm')
     # hack_assembler.assemble('Assembler/newFile.asm')
 
-    Process.open('Add.asm')
-    Process.equException('newFile.asm')
-    hack_assembler.assemble('newFile.asm')
+    # Process.open('Add.asm')
+    # Process.equException('newFile.asm')
+    # hack_assembler.assemble('Add.asm')
     
     
 

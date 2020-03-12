@@ -16,6 +16,12 @@ class Parser:
     A_INSTRUCTION = 0   # Addressing Instruction.
     C_INSTRUCTION = 1   # Computation Instruction.
     L_INSTRUCTION = 2   # Label-Declaration pseudo-Instruction.
+    EQU_INSTRUCTION = 3
+    def writeToErrorFile(message):
+            # f = open("Tables/errorFile.txt", "a")
+            # f.write(message )
+            # f.close()
+            print()
 
     def __init__(self, file):
         self.lexer = Lex.Lex(file)
@@ -42,9 +48,25 @@ class Parser:
                                previously declared with an L-Instruction.
         """
         next_token = self.lexer.next_token()
-        # print(next_token)
+        
+        if(next_token[1] == '-'):
+            Parser.writeToErrorFile("A-Type illegal value: The A-type instruction requires a non-negative 15-bit integer. Line: " + str(Parser.lineNumber)+ " Instruction: " + str(Parser.get_current_line(self)))
+            return
 
-        self._instruction_type = Parser.A_INSTRUCTION
+        else: 
+            self._instruction_type = Parser.A_INSTRUCTION
+            tok_type, self._symbol = next_token
+
+    def _equ_instruction(self):
+        """
+        Addressing Instruction. Possible structures:
+            * @number, examples: @21, @256
+            * @symbol, examples: @i, @n, @LOOP, @END; where i, n could be variables, where LOOP and END could be labels
+                                previously declared with an L-Instruction.
+        """
+        next_token = self.lexer.next_token()
+
+        self._instruction_type = Parser.EQU_INSTRUCTION
         tok_type, self._symbol = next_token
 
 
@@ -65,7 +87,12 @@ class Parser:
           * comp                c-instruction with only a COMP part
         """
         self._instruction_type = Parser.C_INSTRUCTION
-        comp_tok, comp_val = self._get_dest(token, value)
+        try:
+            comp_tok, comp_val = self._get_dest(token, value)
+            
+        except:
+            print("hit")
+
         self._get_comp(comp_tok, comp_val)
         self._get_jump()
 
@@ -74,6 +101,7 @@ class Parser:
         Gets the 'dest' part of the instruction, if any.
         :return: First token of the 'comp' part.
         """
+    
         tok2, val2 = self.lexer.peek_token()
         if tok2 == Lex.OPERATION and val2 == '=':
             self.lexer.next_token()
@@ -82,6 +110,7 @@ class Parser:
         else:
             comp_tok, comp_val = token, value
         return comp_tok, comp_val
+        
 
     def _get_comp(self, token, value):
         """
@@ -116,8 +145,10 @@ class Parser:
 
     @property
     def lineNumber(self):
-        return self._lineNumber
-        
+        try: 
+            return self._lineNumber
+        except:
+            print("failure")
     @property
     def symbol(self):
         """
@@ -130,21 +161,32 @@ class Parser:
         """
         The extracted 'dest' part of instruction.
         """
-        return self._dest
+        try: 
+            return self._dest
+        except:
+            print("failure")
+
+       
 
     @property
     def comp(self):
         """
         The extracted 'comp' part of instruction.
         """
-        return self._comp
+        try: 
+            return self._comp
+        except: 
+            print("failure")
 
     @property
     def jmp(self):
         """
         The extracted 'jmp' part of instruction.
         """
-        return self._jmp
+        try: 
+            return self._jmp
+        except:
+            print("failure")
 
     def has_more_instructions(self):
         return self.lexer.has_more_instructions()
@@ -158,12 +200,16 @@ class Parser:
         self.lexer.next_instruction()
         # line = self.lexer.curr_instr_line
         token, val = self.lexer.curr_token
-        self.lexer.get_line()
+        line = self.lexer.get_line()
+        
+       
 
         if token == Lex.OPERATION and val == '@':
             self._a_instruction()
         elif token == Lex.OPERATION and val == '(':
             self._l_instruction()
+        elif val == '.EQU':
+            self._equ_instruction()
         else:
             self._c_instruction(token, val)
 

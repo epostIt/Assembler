@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+import parser
 
 class Code:
     """
@@ -24,6 +24,19 @@ class Code:
     def __init__(self):
         pass
 
+    def writeLineError(self, f, line):
+        f = open("Assembler/Add.asm", "r")
+        # print(f.readlines())
+        all_lines = f.readlines()
+        print(len(all_lines))
+        print(all_lines)
+        print(str(all_lines[line-1]))
+        errorFile = open("Assembler/Tables/errorFile.txt", "a")
+        errorFile.write("Line " + str(line) + " : " + str(all_lines[line-1]))
+        errorFile.close()
+        f.close()
+        
+
     def _bits(self, n):
         """
         Convert an integer number to a binary string. Uses the built-in "bin()" method.
@@ -40,7 +53,7 @@ class Code:
         """
         return '0' + self._bits(address_value).zfill(15)
 
-    def gen_c_instruction(self, dest, comp, jump):
+    def gen_c_instruction(self, dest, comp, jump, lineNumber, hack_file):
         """
         Generates an A-Instruction from a specified address_value.
         :param dest: 'dest' part of the instruction (string).
@@ -48,19 +61,39 @@ class Code:
         :param jump: 'jmp' part of the instruction (string).
         :return: C-Instruction in binary (string).
         """
-        return '111' + self.comp(comp) + self.dest(dest) + self.jump(jump)
+        return '111' + self.comp(comp, lineNumber) + self.dest(dest, lineNumber, hack_file) + self.jump(jump)
+       
+            
 
-    def dest(self, d):
+    def dest(self, d, lineNumber, hack_file):
         """
         Generates the corresponding binary code for the given 'dest' instruction part.
         """
-        return self._bits(self._dest_codes.index(d)).zfill(3)
+        try:
+            return self._bits(self._dest_codes.index(d)).zfill(3)
+        except:
+            
+           
+            f = open("Tables/ErrorFile.txt", "a")
+            f.write("Illegal C-type destination: A destination for a C-type instruction was detected, but it was not one of the supported mnemonics. \n")
+            self.writeLineError(f, lineNumber)
+            f.close()
+            
 
-    def comp(self, c):
+    def comp(self, c, lineNumber):
         """
         Generates the corresponding binary code for the given 'comp' instruction part.
         """
-        return self._comp_codes[c]
+        try: 
+            print(self)
+            return self._comp_codes[c]
+        except:
+            print("hit")
+            f = open("Assembler/Tables/ErrorFile.txt", "a")
+            f.write("Illegal C-type computation: The computation portion of the C-type instruction is not one of the supported mnemonics \n")
+            self.writeLineError(f, lineNumber)
+            f.close()
+
 
     def jump(self, j):
         """
@@ -68,3 +101,4 @@ class Code:
         """
         return self._bits(self._jump_codes.index(j)).zfill(3)
 
+ 

@@ -43,9 +43,4 @@ class SymbolTable(dict):
     def get_address(self, symbol):
         return self[symbol]
 
-    def print_RAM_table(self):
-        print("--------------------------------")
-        print("The RAM addresses are: ")
-        print(self)
-        print("--------------------------------")
-        return self
+  
