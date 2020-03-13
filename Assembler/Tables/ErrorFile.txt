@@ -1,4 +1,0 @@
-Line 3 : A = m**1
-Illegal C-type computation: The computation portion of the C-type instruction is not one of the supported mnemonics 
-Line 3 : A = 
-Illegal C-type computation: The computation portion of the C-type instruction is not one of the supported mnemonics 

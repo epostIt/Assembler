@@ -61,7 +61,7 @@ class Code:
         :param jump: 'jmp' part of the instruction (string).
         :return: C-Instruction in binary (string).
         """
-        return '111' + self.comp(comp, lineNumber) + self.dest(dest, lineNumber, hack_file) + self.jump(jump)
+        return '111' + self.comp(comp, lineNumber) + self.dest(dest, lineNumber, hack_file) + self.jump(jump, lineNumber)
        
             
 
@@ -88,17 +88,23 @@ class Code:
             print(self)
             return self._comp_codes[c]
         except:
-            print("hit")
             f = open("Assembler/Tables/ErrorFile.txt", "a")
             f.write("Illegal C-type computation: The computation portion of the C-type instruction is not one of the supported mnemonics \n")
             self.writeLineError(f, lineNumber)
             f.close()
 
 
-    def jump(self, j):
+    def jump(self, j, lineNumber):
         """
         Generates the corresponding binary code for the given 'jmp' instruction part.
         """
-        return self._bits(self._jump_codes.index(j)).zfill(3)
+        try: 
+            return self._bits(self._jump_codes.index(j)).zfill(3)
+        except:
+            print("excepted jump")
+            f = open("Assembler/Tables/ErrorFile.txt", "a")
+            f.write("Illegal C-type jump: A jump for a C-type instruction was detected but is not one of the supported mnemonics \n")
+            self.writeLineError(f, lineNumber)
+            f.close()
 
  

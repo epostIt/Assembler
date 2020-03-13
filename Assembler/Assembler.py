@@ -198,11 +198,28 @@ class Assembler:
                     except:
                         hack_file.write("There was an error with this instruction \n")
                 elif inst_type == parser.L_INSTRUCTION:
+                    status = Assembler.checkIfFullLabel(parser.lineNumber)
                     pass
-            
-            
             # print(self.symbols_table)
             Assembler.writeToRAMTableFile(self)
+
+    def checkIfFullLabel(line):
+        status = True
+        f = open("Assembler/Add.asm", "r")
+        # print(f.readlines())
+        all_lines = f.readlines()
+        currentLine = (str(all_lines[line-1]))
+        print(currentLine[0])
+        if(currentLine[0] != '(' or currentLine[-1] != ')'):
+                errorFile = open("Assembler/Tables/errorFile.txt", "a")
+                errorFile.write("Line " + str(line) + " : " + str(all_lines[line-1]))
+                errorFile.write("Illegal Label: Label must begin with ( and end with )")
+                errorFile.close()
+                status = False
+        
+        f.close()
+        return status
+
 
     def assemble(self, file):
         """

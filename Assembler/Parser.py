@@ -58,12 +58,6 @@ class Parser:
             tok_type, self._symbol = next_token
 
     def _equ_instruction(self):
-        """
-        Addressing Instruction. Possible structures:
-            * @number, examples: @21, @256
-            * @symbol, examples: @i, @n, @LOOP, @END; where i, n could be variables, where LOOP and END could be labels
-                                previously declared with an L-Instruction.
-        """
         next_token = self.lexer.next_token()
 
         self._instruction_type = Parser.EQU_INSTRUCTION
@@ -197,8 +191,8 @@ class Parser:
         """
         self._init_instruction_info()
         self._lineNumber = self._lineNumber+1
-        self.lexer.next_instruction()
-        # line = self.lexer.curr_instr_line
+        nextInst = self.lexer.next_instruction()
+        # print(nextInst)
         token, val = self.lexer.curr_token
         line = self.lexer.get_line()
         
