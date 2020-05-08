@@ -85,7 +85,7 @@ class Code:
         Generates the corresponding binary code for the given 'comp' instruction part.
         """
         try: 
-            print(self)
+            # print(self)
             return self._comp_codes[c]
         except:
             f = open("Assembler/Tables/ErrorFile.txt", "a")

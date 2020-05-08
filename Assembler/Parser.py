@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import Lex
-
+import Assembler
 
 class Parser:
     """
@@ -62,6 +62,7 @@ class Parser:
 
         self._instruction_type = Parser.EQU_INSTRUCTION
         tok_type, self._symbol = next_token
+        # handleEQU.defineEQU(self._symbol)
 
 
     def _l_instruction(self):

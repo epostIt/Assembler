@@ -6,8 +6,9 @@ import Parser
 import SymbolTable
 import logging
 import shutil
+# FILE_PATH = sys.argv[1]
 
-
+FILE_PATH = '/Users/Elisabeth/Desktop/pj01/Assembler/Assembler/c.asm'
 class Process: #if you have binary or hex in the code, then you have to change hack_assembler.assemble('Add.asm') to hack_assembler.assemble('NewFile.asm') at the end of this file
 
     def changeFromBinary(line):
@@ -16,8 +17,9 @@ class Process: #if you have binary or hex in the code, then you have to change h
                 if ch != '@':
                     binNumb = binNumb + ch
                 
-                    
+        print(binNumb)
         binNumb = str(int(binNumb, 2))
+        print(binNumb)
         Process.writeFile('@'+binNumb+'\n')
         
 
@@ -26,7 +28,9 @@ class Process: #if you have binary or hex in the code, then you have to change h
         for ch in line:
                 if ch != '@':
                     hexNumb = hexNumb + ch
+        print(hexNumb)
         hexNumb = str(int(hexNumb, 16))
+        print(hexNumb)
         Process.writeFile('@'+hexNumb+'\n')
 
     def writeFile(line):
@@ -56,8 +60,49 @@ class Process: #if you have binary or hex in the code, then you have to change h
                 else: 
                     Process.writeFile(line)
         
-                
-       
+    def handleEQU(file):
+        dictionary = { }
+        with open(file) as fileobj:
+            for line in fileobj: 
+                if '.EQU' in line:
+                    line = (line.split(' ', 1)[1])
+                    name = (line.split(' ', 1)[0])
+                    value = (line.split(' ', 1)[1])
+                    dictionary[name+'\n'] = value
+                    Process.writeFile(line)
+                if '@' in line:
+                    try:
+                        toBeReplaced = (line.split(' ', 1)[1])
+                        if toBeReplaced in dictionary.keys():
+                            line = '@' + dictionary[toBeReplaced]
+                            Process.writeFile(line)
+                    except:
+                        Process.writeFile(line)
+                else:
+                    Process.writeFile(line)
+
+        print(dictionary)
+
+
+# class handleEQU:
+
+#     def defineEQU(line):
+#         with open(FILE_PATH) as fileobj:
+#             for row in fileobj:  
+#                     if line in row:
+#                         print(row)
+#                         handleEQU.parse(row)
+                        
+
+#     def parse(row):
+#         if '.EQU' in row:
+#             value1 = (row.split(' ', 1)[0])
+#             value2 = (row.split(' ', 1)[1])
+#             # value3 = (row.split(' ', 1)[2])
+#             print(value2)
+#             print("--------------")
+
+
 class AddressFailure():
    """Raised when the input value is too small"""
    pass
@@ -140,7 +185,8 @@ class Assembler:
                     Assembler.writeToErrorFile("The following EQU tried to be re-define: " + str(parser.symbol))
                 else:
                     self.symbols_table.add_entry(parser.symbol, curr_address)
-                    f = open("Tables/EQU_Table.txt", "a")
+                    f = open("/Users/Elisabeth/Desktop/pj01/Assembler/Assembler/Tables/EQU_Table.txt", "a")
+                    # handleEQU.defineEQU(str(curr_address))
                     f.write("\n" + parser.symbol + ":" + str(curr_address))
                     f.close()
                     curr_address += 1
@@ -198,14 +244,14 @@ class Assembler:
                     except:
                         hack_file.write("There was an error with this instruction \n")
                 elif inst_type == parser.L_INSTRUCTION:
-                    status = Assembler.checkIfFullLabel(parser.lineNumber)
+                    # status = Assembler.checkIfFullLabel(parser.lineNumber)
                     pass
             # print(self.symbols_table)
             Assembler.writeToRAMTableFile(self)
 
     def checkIfFullLabel(line):
         status = True
-        f = open("Assembler/Add.asm", "r")
+        f = open(FILE_PATH, "r")
         # print(f.readlines())
         all_lines = f.readlines()
         currentLine = (str(all_lines[line-1]))
@@ -239,9 +285,12 @@ if __name__ == '__main__':
 
 
     hack_assembler = Assembler()
-    Process.open('Assembler/Add.asm')
-    hack_assembler.assemble('Assembler/Add.asm')
-    # hack_assembler.assemble('Assembler/newFile.asm')
+    Process.handleEQU(FILE_PATH)
+    # FILE_PATH = '/Users/Elisabeth/Desktop/pj01/Assembler/Assembler/c.asm'
+    # Process.open(FILE_PATH)
+    hack_assembler.assemble(FILE_PATH)
+    # FILE_PATH = '/Users/Elisabeth/Desktop/pj01/Assembler/Assembler/newFile.asm'
+    # hack_assembler.assemble(FILE_PATH)
 
     # Process.open('Add.asm')
     # Process.equException('newFile.asm')
